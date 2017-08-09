@@ -1,70 +1,74 @@
-# MiniMeToken
+# OxToken contract
 
-The MiniMeToken contract is a standard ERC20 token with extra functionality:
+## Testing
 
-### The token is easy to clone!
+These contracts have been developed using the Truffle framework:  
+https://github.com/trufflesuite/truffle
 
-Anybody can create a new clone token from any token using this contract with an initial distribution identical to the original token at a specified block. The address calling the `createCloneToken` function will become the token controller and the token's default settings can be specified in the function call.
+To test, you can:
 
-    function createCloneToken(
-        string _cloneTokenName,
-        uint8 _cloneDecimalUnits,
-        string _cloneTokenSymbol,
-        uint _snapshotBlock,
-        bool _isConstant
-        ) returns(address) {
+1. Run `testrpc` (see https://github.com/ethereumjs/testrpc).
+1. Run `truffle test`
 
-Once the clone token is created, it acts as a completely independent token, with it's own unique functionalities.
+Expected output from test is:
+```
+Using network 'development'.
 
-### Balance history is registered and available to be queried
+Compiling ./contracts/Migrations.sol...
+Compiling ./contracts/OxToken.sol...
+Compiling ./contracts/test/OxTokenMock.sol...
+Compiling ./installed_contracts/zeppelin/contracts/SafeMath.sol...
+Compiling ./installed_contracts/zeppelin/contracts/lifecycle/Destructible.sol...
+Compiling ./installed_contracts/zeppelin/contracts/ownership/Ownable.sol...
+Compiling ./installed_contracts/zeppelin/contracts/token/BasicToken.sol...
+Compiling ./installed_contracts/zeppelin/contracts/token/ERC20.sol...
+Compiling ./installed_contracts/zeppelin/contracts/token/ERC20Basic.sol...
+Compiling ./installed_contracts/zeppelin/contracts/token/LimitedTransferToken.sol...
+Compiling ./installed_contracts/zeppelin/contracts/token/StandardToken.sol...
 
-All MiniMe Tokens maintain a history of the balance changes that occur during each block. Two calls are introduced to read the totalSupply and the balance of any address at any block in the past.
+Compilation warnings encountered:
 
-    function totalSupplyAt(uint _blockNumber) constant returns(uint)
+/Users/adamdossa/Development/Ethereum/OxToken/installed_contracts/zeppelin/contracts/token/LimitedTransferToken.sol:46:47: : Unused local variable
+  function transferableTokens(address holder, uint64 time) constant public returns (uint256) {
+                                              ^---------^
+,/Users/adamdossa/Development/Ethereum/OxToken/contracts/OxToken.sol:51:47: : Unused local variable
+  function transferableTokens(address holder, uint64 time) constant public returns (uint256) {
+                                              ^---------^
 
-    function balanceOfAt(address _holder, uint _blockNumber) constant returns (uint)
-
-### Optional token controller
-
-The controller of the contract can generate/destroy/transfer tokens at its own discretion. The controller can be a regular account, but the intention is for the controller to be another contract that imposes transparent rules on the token's issuance and functionality. The Token Controller is not required for the MiniMe token to function, if there is no reason to generate/destroy/transfer tokens, the token controller can be set to 0x0 and this functionality will be disabled.
-
-For example, a Token Creation contract can be set as the controller of the MiniMe Token and at the end of the token creation period, the controller can be transferred to the 0x0 address, to guarantee that no new tokens will be created.
-
-To create and destroy tokens, these two functions are introduced:
-
-    function generateTokens(address _holder, uint _value) onlyController
-
-    function destroyTokens(address _holder, uint _value) onlyController
-
-### The Token's Controller can freeze transfers.
-
-If transfersEnabled == false, tokens cannot be transferred by the users, however they can still be created, destroyed, and transferred by the controller. The controller can also toggle this flag.
-
-    // Allows tokens to be transferred if true or frozen if false
-    function enableTransfers(bool _transfersEnabled) onlyController
+Coinbase Account:  0xadbb105458c21afea255a68d2389b3c0fac4196d
 
 
-## Applications
+  Contract: OxToken
+Token Address:  0x5c55117ad5b50791bb02244e0bf77fca1162695f
+    ✓ 0. initialize contract (132ms)
 
-If this token contract is used as the base token, then clones of itself can be easily generated at any given block number, this allows for incredibly powerful functionality, effectively the ability for anyone to give extra features to the token holders without having to migrate to a new contract. Some of the applications that the MiniMe token contract can be used for are:
+  Contract: OxToken
+    ✓ 1. start and end sale (263ms)
 
-1. Generating a voting token that is burned when you vote.
-2. Generating a discount "coupon" that is redeemed when you use it.
-3. Generating a token for a "spinoff" DAO.
-4. Generating a token that can be used to give explicit support to an action or a campaign, like polling.
-5. Generating a token to enable the token holders to collect daily, monthly or yearly payments.
-6. Generating a token to limit participation in a token sale or similar event to holders of a specific token.
-7. Generating token that allows a central party complete control to transfer/generate/destroy tokens at will.
-8. Lots of other applications including all the applications the standard ERC 20 token can be used for.
+  Contract: OxToken
+    ✓ 2. checks amounts and bonuses (423ms)
 
-All these applications and more are enabled by the MiniMe Token Contract. The most amazing part being that anyone that wants to add these features can, in a permissionless yet safe manner without affecting the parent token's intended functionality.
+  Contract: OxToken
+    ✓ 3. check transfers (324ms)
 
-# How to deploy a campaign
-
-1. Deploy the MinimeTokenFactory
-2. Deploy the MinimeToken
-3. Deploy the campaign
-4. Assign the controller of the MinimeToken to the campaign.
+  Contract: OxToken
+    ✓ 4. allocate owner tokens (161ms)
 
 
+  5 passing (1s)
+```
 
+## Deployment
+
+I have provided three scripts to ease deployment:  
+deploy.js  
+startSale.js  
+allocateOwnerTokens.js
+
+These files have further instructions, but see below for basic usage.
+
+1. deploy.js: Run using `node scripts/deploy.js build/contracts/OxToken.json`. This will log out the new <contract_address>.
+1. startSale.js: Run using `node scripts/startSale.js build/contracts/OxToken.json <contract_address>`. Replace <contract_address> with the address logged from 1.
+1. allocateOwnerTokens.js: `node scripts/allocateOwnerTokens.js build/contracts/OxToken.json <contract_address>`. Replace <contract_address> with the address logged from 1. Note - this can only be run once the sale has completed.
+
+Note - you will need some small amount of gas in your coinbase account to deploy contracts to mainnet.
